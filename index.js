@@ -47,22 +47,21 @@ var MemStorage = class {
     this.initializeSampleData();
   }
   initializeSampleData() {
-    const user1 = this._createUserSync({
+    const user1 = this.createUser({
       username: "player1",
       password: "password123",
-      // Note: Passwords should be hashed in a real app
       email: "player1@example.com",
       displayName: "Pro Player 1",
       isAdmin: false
     });
-    const user2 = this._createUserSync({
+    const user2 = this.createUser({
       username: "player2",
       password: "password123",
       email: "player2@example.com",
       displayName: "Pro Player 2",
       isAdmin: false
     });
-    const tournament1 = this._createTournamentSync({
+    const tournament1 = this.createTournament({
       name: "FIRE LEGENDS CUP",
       description: "The ultimate Free Fire tournament",
       format: "Battle Royale - Squads",
@@ -71,9 +70,12 @@ var MemStorage = class {
       entryFee: 200,
       prizePool: 5e4,
       startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1e3).toISOString(),
+      // 3 days from now
       endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1e3).toISOString(),
+      // 5 days from now
       registrationStartDate: (/* @__PURE__ */ new Date()).toISOString(),
       registrationEndDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1e3).toISOString(),
+      // 2 days from now
       registrationOpen: true,
       rules: [
         "All players must be at least 16 years old.",
@@ -84,7 +86,7 @@ var MemStorage = class {
       ],
       createdBy: user1.id
     });
-    this._createTournamentSync({
+    const tournament2 = this.createTournament({
       name: "BATTLEGROUND MASTERS",
       description: "Weekly Free Fire tournament for pros",
       format: "Battle Royale - Squads",
@@ -93,9 +95,12 @@ var MemStorage = class {
       entryFee: 0,
       prizePool: 25e3,
       startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1e3).toISOString(),
+      // 5 days from now
       endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1e3).toISOString(),
+      // 6 days from now
       registrationStartDate: (/* @__PURE__ */ new Date()).toISOString(),
       registrationEndDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1e3).toISOString(),
+      // 4 days from now
       registrationOpen: true,
       rules: [
         "No emulators allowed, only mobile devices.",
@@ -106,53 +111,111 @@ var MemStorage = class {
       ],
       createdBy: user1.id
     });
-    const team1 = this._createTeamSync({
+    const team1 = this.createTeam({
       name: "Phoenix Squad",
       captain: user1.id,
       tournamentsPlayed: 5,
       badges: ["PRO"]
     });
-    const team2 = this._createTeamSync({
+    const team2 = this.createTeam({
       name: "Ghost Warriors",
       captain: user2.id,
       tournamentsPlayed: 3,
       badges: []
     });
-    const team3 = this._createTeamSync({
+    const team3 = this.createTeam({
       name: "Elite Snipers",
       captain: user1.id,
       tournamentsPlayed: 8,
       badges: ["CHAMPION"]
     });
-    this._addTeamMemberSync({ teamId: team1.id, userId: user1.id });
-    this._addTeamMemberSync({ teamId: team2.id, userId: user2.id });
-    this._addTeamMemberSync({ teamId: team3.id, userId: user1.id });
-    this._registerForTournamentSync({ tournamentId: tournament1.id, teamId: team1.id, paymentStatus: "completed", paymentId: "pay_123456" });
-    this._registerForTournamentSync({ tournamentId: tournament1.id, teamId: team2.id, paymentStatus: "completed", paymentId: "pay_123457" });
-    this._registerForTournamentSync({ tournamentId: tournament1.id, teamId: team3.id, paymentStatus: "completed", paymentId: "pay_123458" });
-    const match1 = this._createMatchSync({
+    this.addTeamMember({
+      teamId: team1.id,
+      userId: user1.id
+    });
+    this.addTeamMember({
+      teamId: team2.id,
+      userId: user2.id
+    });
+    this.addTeamMember({
+      teamId: team3.id,
+      userId: user1.id
+    });
+    this.registerForTournament({
+      tournamentId: tournament1.id,
+      teamId: team1.id,
+      paymentStatus: "completed",
+      paymentId: "pay_123456"
+    });
+    this.registerForTournament({
+      tournamentId: tournament1.id,
+      teamId: team2.id,
+      paymentStatus: "completed",
+      paymentId: "pay_123457"
+    });
+    this.registerForTournament({
+      tournamentId: tournament1.id,
+      teamId: team3.id,
+      paymentStatus: "completed",
+      paymentId: "pay_123458"
+    });
+    const match1 = this.createMatch({
       tournamentId: tournament1.id,
       round: 1,
       matchNumber: 1,
       startTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1e3).toISOString(),
+      // 2 days ago
       endTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1e3 + 30 * 60 * 1e3).toISOString(),
+      // 30 minutes after start
       status: "completed",
-      results: { winner: team1.id, mvp: user1.id }
+      results: {
+        winner: team1.id,
+        mvp: user1.id
+      }
     });
-    const match2 = this._createMatchSync({
+    const match2 = this.createMatch({
       tournamentId: tournament1.id,
       round: 1,
       matchNumber: 2,
       startTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1e3).toISOString(),
+      // 1 day ago
       endTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1e3 + 30 * 60 * 1e3).toISOString(),
+      // 30 minutes after start
       status: "completed",
-      results: { winner: team3.id, mvp: user1.id }
+      results: {
+        winner: team3.id,
+        mvp: user1.id
+      }
     });
-    this._addMatchParticipantSync({ matchId: match1.id, teamId: team1.id, position: 1, points: 250, kills: 12 });
-    this._addMatchParticipantSync({ matchId: match1.id, teamId: team2.id, position: 5, points: 25, kills: 4 });
-    this._addMatchParticipantSync({ matchId: match2.id, teamId: team3.id, position: 1, points: 250, kills: 15 });
-    this._addMatchParticipantSync({ matchId: match2.id, teamId: team1.id, position: 2, points: 150, kills: 8 });
-    this._createUserProfileSync({
+    this.addMatchParticipant({
+      matchId: match1.id,
+      teamId: team1.id,
+      position: 1,
+      points: 250,
+      kills: 12
+    });
+    this.addMatchParticipant({
+      matchId: match1.id,
+      teamId: team2.id,
+      position: 5,
+      points: 25,
+      kills: 4
+    });
+    this.addMatchParticipant({
+      matchId: match2.id,
+      teamId: team3.id,
+      position: 1,
+      points: 250,
+      kills: 15
+    });
+    this.addMatchParticipant({
+      matchId: match2.id,
+      teamId: team1.id,
+      position: 2,
+      points: 150,
+      kills: 8
+    });
+    this.createUserProfile({
       userId: user1.id,
       level: 42,
       rank: "Pro Player",
@@ -161,15 +224,36 @@ var MemStorage = class {
       matches: 128,
       tournaments: 26,
       kills: 3800,
-      stats: { winRate: 24, kdRatio: 3.2, headshotPercentage: 38, avgSurvivalTime: "14:22" },
+      stats: {
+        winRate: 24,
+        kdRatio: 3.2,
+        headshotPercentage: 38,
+        avgSurvivalTime: "14:22"
+      },
       achievements: [
-        { name: "Tournament Champion", icon: "ri-trophy-fill", colorClass: "from-amber-400 to-amber-600" },
-        { name: "Killing Machine", icon: "ri-sword-fill", colorClass: "from-indigo-400 to-indigo-600" },
-        { name: "Team Player", icon: "ri-team-fill", colorClass: "from-emerald-400 to-emerald-600" },
-        { name: "Community Hero", icon: "ri-heart-fill", colorClass: "from-rose-400 to-rose-600" }
+        {
+          name: "Tournament Champion",
+          icon: "ri-trophy-fill",
+          colorClass: "from-amber-400 to-amber-600"
+        },
+        {
+          name: "Killing Machine",
+          icon: "ri-sword-fill",
+          colorClass: "from-indigo-400 to-indigo-600"
+        },
+        {
+          name: "Team Player",
+          icon: "ri-team-fill",
+          colorClass: "from-emerald-400 to-emerald-600"
+        },
+        {
+          name: "Community Hero",
+          icon: "ri-heart-fill",
+          colorClass: "from-rose-400 to-rose-600"
+        }
       ]
     });
-    this._createUserProfileSync({
+    this.createUserProfile({
       userId: user2.id,
       level: 28,
       rank: "Advanced",
@@ -178,56 +262,123 @@ var MemStorage = class {
       matches: 76,
       tournaments: 12,
       kills: 1200,
-      stats: { winRate: 15, kdRatio: 2.1, headshotPercentage: 25, avgSurvivalTime: "10:34" },
+      stats: {
+        winRate: 15,
+        kdRatio: 2.1,
+        headshotPercentage: 25,
+        avgSurvivalTime: "10:34"
+      },
       achievements: [
-        { name: "Sharpshooter", icon: "ri-aim-line", colorClass: "from-amber-400 to-amber-600" },
-        { name: "Survivor", icon: "ri-shield-star-line", colorClass: "from-emerald-400 to-emerald-600" }
+        {
+          name: "Sharpshooter",
+          icon: "ri-aim-line",
+          colorClass: "from-amber-400 to-amber-600"
+        },
+        {
+          name: "Survivor",
+          icon: "ri-shield-star-line",
+          colorClass: "from-emerald-400 to-emerald-600"
+        }
       ]
     });
-    this._createUserActivitySync({ userId: user1.id, text: "Won the Weekend Warriors Tournament", icon: "ri-trophy-line", iconColor: "text-primary" });
-    this._createUserActivitySync({ userId: user1.id, text: "Joined Phoenix Squad team", icon: "ri-team-line", iconColor: "text-secondary" });
-    this._createUserActivitySync({ userId: user1.id, text: "Reached Level 42", icon: "ri-medal-line", iconColor: "text-warning" });
+    this.createUserActivity({
+      userId: user1.id,
+      text: "Won the Weekend Warriors Tournament",
+      icon: "ri-trophy-line",
+      iconColor: "text-primary"
+    });
+    this.createUserActivity({
+      userId: user1.id,
+      text: "Joined Phoenix Squad team",
+      icon: "ri-team-line",
+      iconColor: "text-secondary"
+    });
+    this.createUserActivity({
+      userId: user1.id,
+      text: "Reached Level 42",
+      icon: "ri-medal-line",
+      iconColor: "text-warning"
+    });
   }
-  // --- Private Synchronous Methods for Internal Use (e.g., Sample Data) ---
-  _createUserSync(user) {
+  // User methods
+  async getUser(id) {
+    return this.users.get(id);
+  }
+  async getUserByUsername(username) {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username
+    );
+  }
+  async createUser(user) {
     const id = this.userCurrentId++;
-    const newUser = { ...user, id, createdAt: (/* @__PURE__ */ new Date()).toISOString(), updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
+    const newUser = { ...user, id };
     this.users.set(id, newUser);
     return newUser;
   }
-  _getTournamentSync(id) {
-    const tournament = this.tournaments.get(id);
-    if (tournament) {
-      const registrations = Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === id);
-      return { ...tournament, participantsCount: registrations.length };
-    }
-    return void 0;
-  }
-  _createTournamentSync(tournament) {
+  // Tournament methods
+  async createTournament(tournament) {
     const id = this.tournamentCurrentId++;
-    const newTournament = { ...tournament, id, participantsCount: 0, createdAt: (/* @__PURE__ */ new Date()).toISOString(), updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
+    const newTournament = {
+      ...tournament,
+      id,
+      participantsCount: 0
+      // Start with 0 participants
+    };
     this.tournaments.set(id, newTournament);
     return newTournament;
   }
-  _createTeamSync(team) {
+  async getTournament(id) {
+    const tournament = this.tournaments.get(id);
+    if (tournament) {
+      const registrations = Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === id);
+      return {
+        ...tournament,
+        participantsCount: registrations.length
+      };
+    }
+    return void 0;
+  }
+  async getAllTournaments() {
+    const tournaments2 = Array.from(this.tournaments.values());
+    return tournaments2.map((tournament) => {
+      const registrations = Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === tournament.id);
+      return {
+        ...tournament,
+        participantsCount: registrations.length
+      };
+    });
+  }
+  // Team methods
+  async createTeam(team) {
     const id = this.teamCurrentId++;
-    const newTeam = { ...team, id, createdAt: (/* @__PURE__ */ new Date()).toISOString(), updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
+    const newTeam = { ...team, id };
     this.teams.set(id, newTeam);
     return newTeam;
   }
-  _addTeamMemberSync(teamMember) {
+  async getTeam(id) {
+    return this.teams.get(id);
+  }
+  async getAllTeams() {
+    return Array.from(this.teams.values());
+  }
+  // Team Member methods
+  async addTeamMember(teamMember) {
     const id = this.teamMemberCurrentId++;
     const joinedAt = (/* @__PURE__ */ new Date()).toISOString();
     const newTeamMember = { ...teamMember, id, joinedAt };
     this.teamMembers.set(id, newTeamMember);
     return newTeamMember;
   }
-  _registerForTournamentSync(registration) {
+  async getTeamMembers(teamId) {
+    return Array.from(this.teamMembers.values()).filter((member) => member.teamId === teamId);
+  }
+  // Tournament Registration methods
+  async registerForTournament(registration) {
     const id = this.tournamentRegistrationCurrentId++;
     const registeredAt = (/* @__PURE__ */ new Date()).toISOString();
     const newRegistration = { ...registration, id, registeredAt };
     this.tournamentRegistrations.set(id, newRegistration);
-    const tournament = this._getTournamentSync(registration.tournamentId);
+    const tournament = await this.getTournament(registration.tournamentId);
     if (tournament) {
       this.tournaments.set(tournament.id, {
         ...tournament,
@@ -236,9 +387,13 @@ var MemStorage = class {
     }
     return newRegistration;
   }
-  _createMatchSync(match) {
+  async getTournamentRegistrations(tournamentId) {
+    return Array.from(this.tournamentRegistrations.values()).filter((registration) => registration.tournamentId === tournamentId);
+  }
+  // Match methods
+  async createMatch(match) {
     const id = this.matchCurrentId++;
-    const tournament = this._getTournamentSync(match.tournamentId);
+    const tournament = await this.getTournament(match.tournamentId);
     const tournamentName = tournament ? tournament.name : "Unknown Tournament";
     const newMatch = {
       ...match,
@@ -246,101 +401,45 @@ var MemStorage = class {
       tournamentName,
       pointsEarned: 0,
       position: 0,
-      date: (/* @__PURE__ */ new Date()).toISOString(),
-      // Assuming schema defaults
-      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+      date: (/* @__PURE__ */ new Date()).toISOString()
     };
     this.matches.set(id, newMatch);
     return newMatch;
   }
-  _addMatchParticipantSync(participant) {
+  async getTournamentMatches(tournamentId) {
+    return Array.from(this.matches.values()).filter((match) => match.tournamentId === tournamentId);
+  }
+  // Match Participant methods
+  async addMatchParticipant(participant) {
     const id = this.matchParticipantCurrentId++;
     const newParticipant = { ...participant, id };
     this.matchParticipants.set(id, newParticipant);
     return newParticipant;
   }
-  _createUserProfileSync(profile) {
+  async getMatchParticipants(matchId) {
+    return Array.from(this.matchParticipants.values()).filter((participant) => participant.matchId === matchId);
+  }
+  // User Profile methods
+  async createUserProfile(profile) {
     const id = this.userProfileCurrentId++;
     const updatedAt = (/* @__PURE__ */ new Date()).toISOString();
-    const newProfile = { ...profile, id, updatedAt, createdAt: (/* @__PURE__ */ new Date()).toISOString() };
+    const newProfile = { ...profile, id, updatedAt };
     this.userProfiles.set(id, newProfile);
     return newProfile;
   }
-  _createUserActivitySync(activity) {
+  async getUserProfile(userId) {
+    return Array.from(this.userProfiles.values()).find((profile) => profile.userId === userId);
+  }
+  // User Activity methods
+  async createUserActivity(activity) {
     const id = this.userActivityCurrentId++;
     const timestamp2 = (/* @__PURE__ */ new Date()).toISOString();
     const newActivity = { ...activity, id, timestamp: timestamp2 };
     this.userActivities.set(id, newActivity);
     return newActivity;
   }
-  // --- Public Asynchronous Methods (IStorage Implementation) ---
-  async getUser(id) {
-    return Promise.resolve(this.users.get(id));
-  }
-  async getUserByUsername(username) {
-    return Promise.resolve(Array.from(this.users.values()).find(
-      (user) => user.username === username
-    ));
-  }
-  async createUser(user) {
-    return Promise.resolve(this._createUserSync(user));
-  }
-  async createTournament(tournament) {
-    return Promise.resolve(this._createTournamentSync(tournament));
-  }
-  async getTournament(id) {
-    return Promise.resolve(this._getTournamentSync(id));
-  }
-  async getAllTournaments() {
-    const tournaments2 = Array.from(this.tournaments.values());
-    const result = tournaments2.map((t) => this._getTournamentSync(t.id));
-    return Promise.resolve(result);
-  }
-  async createTeam(team) {
-    return Promise.resolve(this._createTeamSync(team));
-  }
-  async getTeam(id) {
-    return Promise.resolve(this.teams.get(id));
-  }
-  async getAllTeams() {
-    return Promise.resolve(Array.from(this.teams.values()));
-  }
-  async addTeamMember(teamMember) {
-    return Promise.resolve(this._addTeamMemberSync(teamMember));
-  }
-  async getTeamMembers(teamId) {
-    return Promise.resolve(Array.from(this.teamMembers.values()).filter((member) => member.teamId === teamId));
-  }
-  async registerForTournament(registration) {
-    return Promise.resolve(this._registerForTournamentSync(registration));
-  }
-  async getTournamentRegistrations(tournamentId) {
-    return Promise.resolve(Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === tournamentId));
-  }
-  async createMatch(match) {
-    return Promise.resolve(this._createMatchSync(match));
-  }
-  async getTournamentMatches(tournamentId) {
-    return Promise.resolve(Array.from(this.matches.values()).filter((m) => m.tournamentId === tournamentId));
-  }
-  async addMatchParticipant(participant) {
-    return Promise.resolve(this._addMatchParticipantSync(participant));
-  }
-  async getMatchParticipants(matchId) {
-    return Promise.resolve(Array.from(this.matchParticipants.values()).filter((p) => p.matchId === matchId));
-  }
-  async createUserProfile(profile) {
-    return Promise.resolve(this._createUserProfileSync(profile));
-  }
-  async getUserProfile(userId) {
-    return Promise.resolve(Array.from(this.userProfiles.values()).find((p) => p.userId === userId));
-  }
-  async createUserActivity(activity) {
-    return Promise.resolve(this._createUserActivitySync(activity));
-  }
   async getUserActivities(userId) {
-    return Promise.resolve(Array.from(this.userActivities.values()).filter((act) => act.userId === userId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+    return Array.from(this.userActivities.values()).filter((activity) => activity.userId === userId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 };
 var storage = new MemStorage();
@@ -856,37 +955,33 @@ function log(message, source = "express") {
 async function setupVite(app2, server) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server }
-    // allowedHosts: true, // This is usually not needed for middlewareMode unless specific proxying issues
+    hmr: { server },
+    allowedHosts: true
   };
   const vite = await createViteServer({
     ...vite_config_default,
     configFile: false,
-    // Correct, as you're passing config programmatically
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
         viteLogger.error(msg, options);
+        process.exit(1);
       }
     },
     server: serverOptions,
     appType: "custom"
-    // Correct for integrating with an existing server
   });
   app2.use(vite.middlewares);
   app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplatePath = path2.resolve(
+      const clientTemplate = path2.resolve(
         import.meta.dirname,
-        // Directory of the current module (e.g., server/vite.js after compilation)
         "..",
-        // Up to project root
         "client",
-        // Into client directory
         "index.html"
       );
-      let template = await fs.promises.readFile(clientTemplatePath, "utf-8");
+      let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -900,33 +995,15 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path2.resolve(
-    import.meta.dirname,
-    // Directory of the current module (e.g., server/vite.js after compilation)
-    "..",
-    // Up to project root
-    "dist",
-    // Into dist directory (root of build output)
-    "public"
-    // Into public subdirectory within dist
-  );
+  const distPath = path2.resolve(import.meta.dirname, "public");
   if (!fs.existsSync(distPath)) {
-    log(`Build output directory not found at: ${distPath}`, "vite-prod");
-    log("Make sure to build the client first (e.g., 'npm run build' in client directory or root).", "vite-prod");
     throw new Error(
-      `Build output directory not found: ${distPath}. Ensure the client is built and vite.config.ts build.outDir is configured correctly relative to this path. Expected structure: your-project-root/dist/public/`
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
-  log(`Serving static files from: ${distPath}`, "vite-prod");
   app2.use(express.static(distPath));
   app2.use("*", (_req, res) => {
-    const indexPath = path2.resolve(distPath, "index.html");
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      log(`index.html not found in ${distPath}. SPA fallback will fail.`, "vite-prod-error");
-      res.status(404).send("Application not found. Missing index.html in build output.");
-    }
+    res.sendFile(path2.resolve(distPath, "index.html"));
   });
 }
 
