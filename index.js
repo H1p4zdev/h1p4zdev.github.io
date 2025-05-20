@@ -1,5 +1,6 @@
 // server/index.ts
 import express2 from "express";
+import cors from "cors";
 
 // server/routes.ts
 import { createServer } from "http";
@@ -956,6 +957,27 @@ function serveStatic(app2) {
 var app = express2();
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: false }));
+var allowedOrigins = [
+  "https://h1p4zdev-github-io.vercel.app"
+  // <<<<<<<<<<<< REPLACED HERE
+  // 'http://localhost:5173' // Example: Add your Vite dev server URL if needed for local testing
+];
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = "The CORS policy for this site does not allow access from the specified Origin.";
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  // Standard methods
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  // Common headers
+  credentials: true
+  // This is important if your frontend needs to send cookies or Authorization headers
+}));
 app.use((req, res, next) => {
   const start = Date.now();
   const path3 = req.path;
@@ -985,8 +1007,13 @@ app.use((req, res, next) => {
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
+    if (!res.headersSent) {
+      if (allowedOrigins.includes(_req.headers.origin || "")) {
+        res.setHeader("Access-Control-Allow-Origin", _req.headers.origin || "");
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+      }
+    }
     res.status(status).json({ message });
-    throw err;
   });
   if (app.get("env") === "development") {
     await setupVite(app, server);
@@ -1001,4 +1028,7 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
-})();
+})().catch((err) => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
+});
