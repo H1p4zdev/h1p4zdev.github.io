@@ -47,21 +47,22 @@ var MemStorage = class {
     this.initializeSampleData();
   }
   initializeSampleData() {
-    const user1 = this.createUser({
+    const user1 = this._createUserSync({
       username: "player1",
       password: "password123",
+      // Note: Passwords should be hashed in a real app
       email: "player1@example.com",
       displayName: "Pro Player 1",
       isAdmin: false
     });
-    const user2 = this.createUser({
+    const user2 = this._createUserSync({
       username: "player2",
       password: "password123",
       email: "player2@example.com",
       displayName: "Pro Player 2",
       isAdmin: false
     });
-    const tournament1 = this.createTournament({
+    const tournament1 = this._createTournamentSync({
       name: "FIRE LEGENDS CUP",
       description: "The ultimate Free Fire tournament",
       format: "Battle Royale - Squads",
@@ -70,12 +71,9 @@ var MemStorage = class {
       entryFee: 200,
       prizePool: 5e4,
       startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 3 days from now
       endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 5 days from now
       registrationStartDate: (/* @__PURE__ */ new Date()).toISOString(),
       registrationEndDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 2 days from now
       registrationOpen: true,
       rules: [
         "All players must be at least 16 years old.",
@@ -86,7 +84,7 @@ var MemStorage = class {
       ],
       createdBy: user1.id
     });
-    const tournament2 = this.createTournament({
+    this._createTournamentSync({
       name: "BATTLEGROUND MASTERS",
       description: "Weekly Free Fire tournament for pros",
       format: "Battle Royale - Squads",
@@ -95,12 +93,9 @@ var MemStorage = class {
       entryFee: 0,
       prizePool: 25e3,
       startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 5 days from now
       endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 6 days from now
       registrationStartDate: (/* @__PURE__ */ new Date()).toISOString(),
       registrationEndDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 4 days from now
       registrationOpen: true,
       rules: [
         "No emulators allowed, only mobile devices.",
@@ -111,111 +106,53 @@ var MemStorage = class {
       ],
       createdBy: user1.id
     });
-    const team1 = this.createTeam({
+    const team1 = this._createTeamSync({
       name: "Phoenix Squad",
       captain: user1.id,
       tournamentsPlayed: 5,
       badges: ["PRO"]
     });
-    const team2 = this.createTeam({
+    const team2 = this._createTeamSync({
       name: "Ghost Warriors",
       captain: user2.id,
       tournamentsPlayed: 3,
       badges: []
     });
-    const team3 = this.createTeam({
+    const team3 = this._createTeamSync({
       name: "Elite Snipers",
       captain: user1.id,
       tournamentsPlayed: 8,
       badges: ["CHAMPION"]
     });
-    this.addTeamMember({
-      teamId: team1.id,
-      userId: user1.id
-    });
-    this.addTeamMember({
-      teamId: team2.id,
-      userId: user2.id
-    });
-    this.addTeamMember({
-      teamId: team3.id,
-      userId: user1.id
-    });
-    this.registerForTournament({
-      tournamentId: tournament1.id,
-      teamId: team1.id,
-      paymentStatus: "completed",
-      paymentId: "pay_123456"
-    });
-    this.registerForTournament({
-      tournamentId: tournament1.id,
-      teamId: team2.id,
-      paymentStatus: "completed",
-      paymentId: "pay_123457"
-    });
-    this.registerForTournament({
-      tournamentId: tournament1.id,
-      teamId: team3.id,
-      paymentStatus: "completed",
-      paymentId: "pay_123458"
-    });
-    const match1 = this.createMatch({
+    this._addTeamMemberSync({ teamId: team1.id, userId: user1.id });
+    this._addTeamMemberSync({ teamId: team2.id, userId: user2.id });
+    this._addTeamMemberSync({ teamId: team3.id, userId: user1.id });
+    this._registerForTournamentSync({ tournamentId: tournament1.id, teamId: team1.id, paymentStatus: "completed", paymentId: "pay_123456" });
+    this._registerForTournamentSync({ tournamentId: tournament1.id, teamId: team2.id, paymentStatus: "completed", paymentId: "pay_123457" });
+    this._registerForTournamentSync({ tournamentId: tournament1.id, teamId: team3.id, paymentStatus: "completed", paymentId: "pay_123458" });
+    const match1 = this._createMatchSync({
       tournamentId: tournament1.id,
       round: 1,
       matchNumber: 1,
       startTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 2 days ago
       endTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1e3 + 30 * 60 * 1e3).toISOString(),
-      // 30 minutes after start
       status: "completed",
-      results: {
-        winner: team1.id,
-        mvp: user1.id
-      }
+      results: { winner: team1.id, mvp: user1.id }
     });
-    const match2 = this.createMatch({
+    const match2 = this._createMatchSync({
       tournamentId: tournament1.id,
       round: 1,
       matchNumber: 2,
       startTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 1 day ago
       endTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1e3 + 30 * 60 * 1e3).toISOString(),
-      // 30 minutes after start
       status: "completed",
-      results: {
-        winner: team3.id,
-        mvp: user1.id
-      }
+      results: { winner: team3.id, mvp: user1.id }
     });
-    this.addMatchParticipant({
-      matchId: match1.id,
-      teamId: team1.id,
-      position: 1,
-      points: 250,
-      kills: 12
-    });
-    this.addMatchParticipant({
-      matchId: match1.id,
-      teamId: team2.id,
-      position: 5,
-      points: 25,
-      kills: 4
-    });
-    this.addMatchParticipant({
-      matchId: match2.id,
-      teamId: team3.id,
-      position: 1,
-      points: 250,
-      kills: 15
-    });
-    this.addMatchParticipant({
-      matchId: match2.id,
-      teamId: team1.id,
-      position: 2,
-      points: 150,
-      kills: 8
-    });
-    this.createUserProfile({
+    this._addMatchParticipantSync({ matchId: match1.id, teamId: team1.id, position: 1, points: 250, kills: 12 });
+    this._addMatchParticipantSync({ matchId: match1.id, teamId: team2.id, position: 5, points: 25, kills: 4 });
+    this._addMatchParticipantSync({ matchId: match2.id, teamId: team3.id, position: 1, points: 250, kills: 15 });
+    this._addMatchParticipantSync({ matchId: match2.id, teamId: team1.id, position: 2, points: 150, kills: 8 });
+    this._createUserProfileSync({
       userId: user1.id,
       level: 42,
       rank: "Pro Player",
@@ -224,36 +161,15 @@ var MemStorage = class {
       matches: 128,
       tournaments: 26,
       kills: 3800,
-      stats: {
-        winRate: 24,
-        kdRatio: 3.2,
-        headshotPercentage: 38,
-        avgSurvivalTime: "14:22"
-      },
+      stats: { winRate: 24, kdRatio: 3.2, headshotPercentage: 38, avgSurvivalTime: "14:22" },
       achievements: [
-        {
-          name: "Tournament Champion",
-          icon: "ri-trophy-fill",
-          colorClass: "from-amber-400 to-amber-600"
-        },
-        {
-          name: "Killing Machine",
-          icon: "ri-sword-fill",
-          colorClass: "from-indigo-400 to-indigo-600"
-        },
-        {
-          name: "Team Player",
-          icon: "ri-team-fill",
-          colorClass: "from-emerald-400 to-emerald-600"
-        },
-        {
-          name: "Community Hero",
-          icon: "ri-heart-fill",
-          colorClass: "from-rose-400 to-rose-600"
-        }
+        { name: "Tournament Champion", icon: "ri-trophy-fill", colorClass: "from-amber-400 to-amber-600" },
+        { name: "Killing Machine", icon: "ri-sword-fill", colorClass: "from-indigo-400 to-indigo-600" },
+        { name: "Team Player", icon: "ri-team-fill", colorClass: "from-emerald-400 to-emerald-600" },
+        { name: "Community Hero", icon: "ri-heart-fill", colorClass: "from-rose-400 to-rose-600" }
       ]
     });
-    this.createUserProfile({
+    this._createUserProfileSync({
       userId: user2.id,
       level: 28,
       rank: "Advanced",
@@ -262,123 +178,56 @@ var MemStorage = class {
       matches: 76,
       tournaments: 12,
       kills: 1200,
-      stats: {
-        winRate: 15,
-        kdRatio: 2.1,
-        headshotPercentage: 25,
-        avgSurvivalTime: "10:34"
-      },
+      stats: { winRate: 15, kdRatio: 2.1, headshotPercentage: 25, avgSurvivalTime: "10:34" },
       achievements: [
-        {
-          name: "Sharpshooter",
-          icon: "ri-aim-line",
-          colorClass: "from-amber-400 to-amber-600"
-        },
-        {
-          name: "Survivor",
-          icon: "ri-shield-star-line",
-          colorClass: "from-emerald-400 to-emerald-600"
-        }
+        { name: "Sharpshooter", icon: "ri-aim-line", colorClass: "from-amber-400 to-amber-600" },
+        { name: "Survivor", icon: "ri-shield-star-line", colorClass: "from-emerald-400 to-emerald-600" }
       ]
     });
-    this.createUserActivity({
-      userId: user1.id,
-      text: "Won the Weekend Warriors Tournament",
-      icon: "ri-trophy-line",
-      iconColor: "text-primary"
-    });
-    this.createUserActivity({
-      userId: user1.id,
-      text: "Joined Phoenix Squad team",
-      icon: "ri-team-line",
-      iconColor: "text-secondary"
-    });
-    this.createUserActivity({
-      userId: user1.id,
-      text: "Reached Level 42",
-      icon: "ri-medal-line",
-      iconColor: "text-warning"
-    });
+    this._createUserActivitySync({ userId: user1.id, text: "Won the Weekend Warriors Tournament", icon: "ri-trophy-line", iconColor: "text-primary" });
+    this._createUserActivitySync({ userId: user1.id, text: "Joined Phoenix Squad team", icon: "ri-team-line", iconColor: "text-secondary" });
+    this._createUserActivitySync({ userId: user1.id, text: "Reached Level 42", icon: "ri-medal-line", iconColor: "text-warning" });
   }
-  // User methods
-  async getUser(id) {
-    return this.users.get(id);
-  }
-  async getUserByUsername(username) {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
-  }
-  async createUser(user) {
+  // --- Private Synchronous Methods for Internal Use (e.g., Sample Data) ---
+  _createUserSync(user) {
     const id = this.userCurrentId++;
-    const newUser = { ...user, id };
+    const newUser = { ...user, id, createdAt: (/* @__PURE__ */ new Date()).toISOString(), updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
     this.users.set(id, newUser);
     return newUser;
   }
-  // Tournament methods
-  async createTournament(tournament) {
-    const id = this.tournamentCurrentId++;
-    const newTournament = {
-      ...tournament,
-      id,
-      participantsCount: 0
-      // Start with 0 participants
-    };
-    this.tournaments.set(id, newTournament);
-    return newTournament;
-  }
-  async getTournament(id) {
+  _getTournamentSync(id) {
     const tournament = this.tournaments.get(id);
     if (tournament) {
       const registrations = Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === id);
-      return {
-        ...tournament,
-        participantsCount: registrations.length
-      };
+      return { ...tournament, participantsCount: registrations.length };
     }
     return void 0;
   }
-  async getAllTournaments() {
-    const tournaments2 = Array.from(this.tournaments.values());
-    return tournaments2.map((tournament) => {
-      const registrations = Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === tournament.id);
-      return {
-        ...tournament,
-        participantsCount: registrations.length
-      };
-    });
+  _createTournamentSync(tournament) {
+    const id = this.tournamentCurrentId++;
+    const newTournament = { ...tournament, id, participantsCount: 0, createdAt: (/* @__PURE__ */ new Date()).toISOString(), updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
+    this.tournaments.set(id, newTournament);
+    return newTournament;
   }
-  // Team methods
-  async createTeam(team) {
+  _createTeamSync(team) {
     const id = this.teamCurrentId++;
-    const newTeam = { ...team, id };
+    const newTeam = { ...team, id, createdAt: (/* @__PURE__ */ new Date()).toISOString(), updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
     this.teams.set(id, newTeam);
     return newTeam;
   }
-  async getTeam(id) {
-    return this.teams.get(id);
-  }
-  async getAllTeams() {
-    return Array.from(this.teams.values());
-  }
-  // Team Member methods
-  async addTeamMember(teamMember) {
+  _addTeamMemberSync(teamMember) {
     const id = this.teamMemberCurrentId++;
     const joinedAt = (/* @__PURE__ */ new Date()).toISOString();
     const newTeamMember = { ...teamMember, id, joinedAt };
     this.teamMembers.set(id, newTeamMember);
     return newTeamMember;
   }
-  async getTeamMembers(teamId) {
-    return Array.from(this.teamMembers.values()).filter((member) => member.teamId === teamId);
-  }
-  // Tournament Registration methods
-  async registerForTournament(registration) {
+  _registerForTournamentSync(registration) {
     const id = this.tournamentRegistrationCurrentId++;
     const registeredAt = (/* @__PURE__ */ new Date()).toISOString();
     const newRegistration = { ...registration, id, registeredAt };
     this.tournamentRegistrations.set(id, newRegistration);
-    const tournament = await this.getTournament(registration.tournamentId);
+    const tournament = this._getTournamentSync(registration.tournamentId);
     if (tournament) {
       this.tournaments.set(tournament.id, {
         ...tournament,
@@ -387,13 +236,9 @@ var MemStorage = class {
     }
     return newRegistration;
   }
-  async getTournamentRegistrations(tournamentId) {
-    return Array.from(this.tournamentRegistrations.values()).filter((registration) => registration.tournamentId === tournamentId);
-  }
-  // Match methods
-  async createMatch(match) {
+  _createMatchSync(match) {
     const id = this.matchCurrentId++;
-    const tournament = await this.getTournament(match.tournamentId);
+    const tournament = this._getTournamentSync(match.tournamentId);
     const tournamentName = tournament ? tournament.name : "Unknown Tournament";
     const newMatch = {
       ...match,
@@ -401,45 +246,101 @@ var MemStorage = class {
       tournamentName,
       pointsEarned: 0,
       position: 0,
-      date: (/* @__PURE__ */ new Date()).toISOString()
+      date: (/* @__PURE__ */ new Date()).toISOString(),
+      // Assuming schema defaults
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
     };
     this.matches.set(id, newMatch);
     return newMatch;
   }
-  async getTournamentMatches(tournamentId) {
-    return Array.from(this.matches.values()).filter((match) => match.tournamentId === tournamentId);
-  }
-  // Match Participant methods
-  async addMatchParticipant(participant) {
+  _addMatchParticipantSync(participant) {
     const id = this.matchParticipantCurrentId++;
     const newParticipant = { ...participant, id };
     this.matchParticipants.set(id, newParticipant);
     return newParticipant;
   }
-  async getMatchParticipants(matchId) {
-    return Array.from(this.matchParticipants.values()).filter((participant) => participant.matchId === matchId);
-  }
-  // User Profile methods
-  async createUserProfile(profile) {
+  _createUserProfileSync(profile) {
     const id = this.userProfileCurrentId++;
     const updatedAt = (/* @__PURE__ */ new Date()).toISOString();
-    const newProfile = { ...profile, id, updatedAt };
+    const newProfile = { ...profile, id, updatedAt, createdAt: (/* @__PURE__ */ new Date()).toISOString() };
     this.userProfiles.set(id, newProfile);
     return newProfile;
   }
-  async getUserProfile(userId) {
-    return Array.from(this.userProfiles.values()).find((profile) => profile.userId === userId);
-  }
-  // User Activity methods
-  async createUserActivity(activity) {
+  _createUserActivitySync(activity) {
     const id = this.userActivityCurrentId++;
     const timestamp2 = (/* @__PURE__ */ new Date()).toISOString();
     const newActivity = { ...activity, id, timestamp: timestamp2 };
     this.userActivities.set(id, newActivity);
     return newActivity;
   }
+  // --- Public Asynchronous Methods (IStorage Implementation) ---
+  async getUser(id) {
+    return Promise.resolve(this.users.get(id));
+  }
+  async getUserByUsername(username) {
+    return Promise.resolve(Array.from(this.users.values()).find(
+      (user) => user.username === username
+    ));
+  }
+  async createUser(user) {
+    return Promise.resolve(this._createUserSync(user));
+  }
+  async createTournament(tournament) {
+    return Promise.resolve(this._createTournamentSync(tournament));
+  }
+  async getTournament(id) {
+    return Promise.resolve(this._getTournamentSync(id));
+  }
+  async getAllTournaments() {
+    const tournaments2 = Array.from(this.tournaments.values());
+    const result = tournaments2.map((t) => this._getTournamentSync(t.id));
+    return Promise.resolve(result);
+  }
+  async createTeam(team) {
+    return Promise.resolve(this._createTeamSync(team));
+  }
+  async getTeam(id) {
+    return Promise.resolve(this.teams.get(id));
+  }
+  async getAllTeams() {
+    return Promise.resolve(Array.from(this.teams.values()));
+  }
+  async addTeamMember(teamMember) {
+    return Promise.resolve(this._addTeamMemberSync(teamMember));
+  }
+  async getTeamMembers(teamId) {
+    return Promise.resolve(Array.from(this.teamMembers.values()).filter((member) => member.teamId === teamId));
+  }
+  async registerForTournament(registration) {
+    return Promise.resolve(this._registerForTournamentSync(registration));
+  }
+  async getTournamentRegistrations(tournamentId) {
+    return Promise.resolve(Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === tournamentId));
+  }
+  async createMatch(match) {
+    return Promise.resolve(this._createMatchSync(match));
+  }
+  async getTournamentMatches(tournamentId) {
+    return Promise.resolve(Array.from(this.matches.values()).filter((m) => m.tournamentId === tournamentId));
+  }
+  async addMatchParticipant(participant) {
+    return Promise.resolve(this._addMatchParticipantSync(participant));
+  }
+  async getMatchParticipants(matchId) {
+    return Promise.resolve(Array.from(this.matchParticipants.values()).filter((p) => p.matchId === matchId));
+  }
+  async createUserProfile(profile) {
+    return Promise.resolve(this._createUserProfileSync(profile));
+  }
+  async getUserProfile(userId) {
+    return Promise.resolve(Array.from(this.userProfiles.values()).find((p) => p.userId === userId));
+  }
+  async createUserActivity(activity) {
+    return Promise.resolve(this._createUserActivitySync(activity));
+  }
   async getUserActivities(userId) {
-    return Array.from(this.userActivities.values()).filter((activity) => activity.userId === userId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return Promise.resolve(Array.from(this.userActivities.values()).filter((act) => act.userId === userId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
   }
 };
 var storage = new MemStorage();
