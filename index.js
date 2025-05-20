@@ -856,33 +856,37 @@ function log(message, source = "express") {
 async function setupVite(app2, server) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true
+    hmr: { server }
+    // allowedHosts: true, // This is usually not needed for middlewareMode unless specific proxying issues
   };
   const vite = await createViteServer({
     ...vite_config_default,
     configFile: false,
+    // Correct, as you're passing config programmatically
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
         viteLogger.error(msg, options);
-        process.exit(1);
       }
     },
     server: serverOptions,
     appType: "custom"
+    // Correct for integrating with an existing server
   });
   app2.use(vite.middlewares);
   app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path2.resolve(
+      const clientTemplatePath = path2.resolve(
         import.meta.dirname,
+        // Directory of the current module (e.g., server/vite.js after compilation)
         "..",
+        // Up to project root
         "client",
+        // Into client directory
         "index.html"
       );
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs.promises.readFile(clientTemplatePath, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -896,15 +900,33 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path2.resolve(import.meta.dirname, "public");
+  const distPath = path2.resolve(
+    import.meta.dirname,
+    // Directory of the current module (e.g., server/vite.js after compilation)
+    "..",
+    // Up to project root
+    "dist",
+    // Into dist directory (root of build output)
+    "public"
+    // Into public subdirectory within dist
+  );
   if (!fs.existsSync(distPath)) {
+    log(`Build output directory not found at: ${distPath}`, "vite-prod");
+    log("Make sure to build the client first (e.g., 'npm run build' in client directory or root).", "vite-prod");
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
+      `Build output directory not found: ${distPath}. Ensure the client is built and vite.config.ts build.outDir is configured correctly relative to this path. Expected structure: your-project-root/dist/public/`
     );
   }
+  log(`Serving static files from: ${distPath}`, "vite-prod");
   app2.use(express.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path2.resolve(distPath, "index.html"));
+    const indexPath = path2.resolve(distPath, "index.html");
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      log(`index.html not found in ${distPath}. SPA fallback will fail.`, "vite-prod-error");
+      res.status(404).send("Application not found. Missing index.html in build output.");
+    }
   });
 }
 
