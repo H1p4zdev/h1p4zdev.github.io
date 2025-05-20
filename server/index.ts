@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from 'cors';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -6,6 +7,30 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Configure CORS to allow requests from your Vercel frontend
+// and allow credentials (like cookies or authorization headers).
+const allowedOrigins = [
+  'https://h1p4zdev-github-io.vercel.app', // <<<<<<<<<<<< REPLACED HERE
+  // 'http://localhost:5173' // Example: Add your Vite dev server URL if needed for local testing
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // Standard methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Common headers
+  credentials: true // This is important if your frontend needs to send cookies or Authorization headers
+}));
+
+
+// Your custom logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -43,8 +68,16 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    // Ensure CORS headers are also on error responses if not already set by the cors middleware
+    if (!res.headersSent) {
+        if (allowedOrigins.includes(_req.headers.origin || '')) {
+            res.setHeader('Access-Control-Allow-Origin', _req.headers.origin || '');
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+        }
+    }
+
     res.status(status).json({ message });
-    throw err;
+    // console.error(err);
   });
 
   // importantly only setup vite in development and after
@@ -67,4 +100,7 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
-})();
+})().catch(err => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
+});
