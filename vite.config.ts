@@ -5,7 +5,7 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/your-repo-name/",
+  base: "/",
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
