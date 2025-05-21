@@ -1,6 +1,5 @@
 // server/index.ts
 import express2 from "express";
-import cors from "cors";
 
 // server/routes.ts
 import { createServer } from "http";
@@ -8,299 +7,17 @@ import { createServer } from "http";
 // server/storage.ts
 var MemStorage = class {
   users;
-  tournaments;
-  teams;
-  teamMembers;
-  tournamentRegistrations;
-  matches;
-  matchParticipants;
-  userProfiles;
-  userActivities;
-  userCurrentId;
-  tournamentCurrentId;
-  teamCurrentId;
-  teamMemberCurrentId;
-  tournamentRegistrationCurrentId;
-  matchCurrentId;
-  matchParticipantCurrentId;
-  userProfileCurrentId;
-  userActivityCurrentId;
+  projects;
+  projectsByUsername;
+  currentUserId;
+  currentProjectId;
   constructor() {
     this.users = /* @__PURE__ */ new Map();
-    this.tournaments = /* @__PURE__ */ new Map();
-    this.teams = /* @__PURE__ */ new Map();
-    this.teamMembers = /* @__PURE__ */ new Map();
-    this.tournamentRegistrations = /* @__PURE__ */ new Map();
-    this.matches = /* @__PURE__ */ new Map();
-    this.matchParticipants = /* @__PURE__ */ new Map();
-    this.userProfiles = /* @__PURE__ */ new Map();
-    this.userActivities = /* @__PURE__ */ new Map();
-    this.userCurrentId = 1;
-    this.tournamentCurrentId = 1;
-    this.teamCurrentId = 1;
-    this.teamMemberCurrentId = 1;
-    this.tournamentRegistrationCurrentId = 1;
-    this.matchCurrentId = 1;
-    this.matchParticipantCurrentId = 1;
-    this.userProfileCurrentId = 1;
-    this.userActivityCurrentId = 1;
-    this.initializeSampleData();
+    this.projects = /* @__PURE__ */ new Map();
+    this.projectsByUsername = /* @__PURE__ */ new Map();
+    this.currentUserId = 1;
+    this.currentProjectId = 1;
   }
-  initializeSampleData() {
-    const user1 = this.createUser({
-      username: "player1",
-      password: "password123",
-      email: "player1@example.com",
-      displayName: "Pro Player 1",
-      isAdmin: false
-    });
-    const user2 = this.createUser({
-      username: "player2",
-      password: "password123",
-      email: "player2@example.com",
-      displayName: "Pro Player 2",
-      isAdmin: false
-    });
-    const tournament1 = this.createTournament({
-      name: "FIRE LEGENDS CUP",
-      description: "The ultimate Free Fire tournament",
-      format: "Battle Royale - Squads",
-      teamSize: 4,
-      maxParticipants: 128,
-      entryFee: 200,
-      prizePool: 5e4,
-      startDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 3 days from now
-      endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 5 days from now
-      registrationStartDate: (/* @__PURE__ */ new Date()).toISOString(),
-      registrationEndDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 2 days from now
-      registrationOpen: true,
-      rules: [
-        "All players must be at least 16 years old.",
-        "Teams must check in 30 minutes before their scheduled match time.",
-        "Use of unauthorized programs or hacks will result in immediate disqualification.",
-        "Tournament officials' decisions are final in all disputes.",
-        "All matches will be played on the latest version of Free Fire."
-      ],
-      createdBy: user1.id
-    });
-    const tournament2 = this.createTournament({
-      name: "BATTLEGROUND MASTERS",
-      description: "Weekly Free Fire tournament for pros",
-      format: "Battle Royale - Squads",
-      teamSize: 4,
-      maxParticipants: 96,
-      entryFee: 0,
-      prizePool: 25e3,
-      startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 5 days from now
-      endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 6 days from now
-      registrationStartDate: (/* @__PURE__ */ new Date()).toISOString(),
-      registrationEndDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 4 days from now
-      registrationOpen: true,
-      rules: [
-        "No emulators allowed, only mobile devices.",
-        "All players must use their registered in-game name.",
-        "Teams must be present 15 minutes before match start.",
-        "Bad sportsmanship will result in disqualification.",
-        "Matches will be played in custom rooms with tournament password."
-      ],
-      createdBy: user1.id
-    });
-    const team1 = this.createTeam({
-      name: "Phoenix Squad",
-      captain: user1.id,
-      tournamentsPlayed: 5,
-      badges: ["PRO"]
-    });
-    const team2 = this.createTeam({
-      name: "Ghost Warriors",
-      captain: user2.id,
-      tournamentsPlayed: 3,
-      badges: []
-    });
-    const team3 = this.createTeam({
-      name: "Elite Snipers",
-      captain: user1.id,
-      tournamentsPlayed: 8,
-      badges: ["CHAMPION"]
-    });
-    this.addTeamMember({
-      teamId: team1.id,
-      userId: user1.id
-    });
-    this.addTeamMember({
-      teamId: team2.id,
-      userId: user2.id
-    });
-    this.addTeamMember({
-      teamId: team3.id,
-      userId: user1.id
-    });
-    this.registerForTournament({
-      tournamentId: tournament1.id,
-      teamId: team1.id,
-      paymentStatus: "completed",
-      paymentId: "pay_123456"
-    });
-    this.registerForTournament({
-      tournamentId: tournament1.id,
-      teamId: team2.id,
-      paymentStatus: "completed",
-      paymentId: "pay_123457"
-    });
-    this.registerForTournament({
-      tournamentId: tournament1.id,
-      teamId: team3.id,
-      paymentStatus: "completed",
-      paymentId: "pay_123458"
-    });
-    const match1 = this.createMatch({
-      tournamentId: tournament1.id,
-      round: 1,
-      matchNumber: 1,
-      startTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 2 days ago
-      endTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1e3 + 30 * 60 * 1e3).toISOString(),
-      // 30 minutes after start
-      status: "completed",
-      results: {
-        winner: team1.id,
-        mvp: user1.id
-      }
-    });
-    const match2 = this.createMatch({
-      tournamentId: tournament1.id,
-      round: 1,
-      matchNumber: 2,
-      startTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1e3).toISOString(),
-      // 1 day ago
-      endTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1e3 + 30 * 60 * 1e3).toISOString(),
-      // 30 minutes after start
-      status: "completed",
-      results: {
-        winner: team3.id,
-        mvp: user1.id
-      }
-    });
-    this.addMatchParticipant({
-      matchId: match1.id,
-      teamId: team1.id,
-      position: 1,
-      points: 250,
-      kills: 12
-    });
-    this.addMatchParticipant({
-      matchId: match1.id,
-      teamId: team2.id,
-      position: 5,
-      points: 25,
-      kills: 4
-    });
-    this.addMatchParticipant({
-      matchId: match2.id,
-      teamId: team3.id,
-      position: 1,
-      points: 250,
-      kills: 15
-    });
-    this.addMatchParticipant({
-      matchId: match2.id,
-      teamId: team1.id,
-      position: 2,
-      points: 150,
-      kills: 8
-    });
-    this.createUserProfile({
-      userId: user1.id,
-      level: 42,
-      rank: "Pro Player",
-      verified: true,
-      tournamentsWon: 12,
-      matches: 128,
-      tournaments: 26,
-      kills: 3800,
-      stats: {
-        winRate: 24,
-        kdRatio: 3.2,
-        headshotPercentage: 38,
-        avgSurvivalTime: "14:22"
-      },
-      achievements: [
-        {
-          name: "Tournament Champion",
-          icon: "ri-trophy-fill",
-          colorClass: "from-amber-400 to-amber-600"
-        },
-        {
-          name: "Killing Machine",
-          icon: "ri-sword-fill",
-          colorClass: "from-indigo-400 to-indigo-600"
-        },
-        {
-          name: "Team Player",
-          icon: "ri-team-fill",
-          colorClass: "from-emerald-400 to-emerald-600"
-        },
-        {
-          name: "Community Hero",
-          icon: "ri-heart-fill",
-          colorClass: "from-rose-400 to-rose-600"
-        }
-      ]
-    });
-    this.createUserProfile({
-      userId: user2.id,
-      level: 28,
-      rank: "Advanced",
-      verified: false,
-      tournamentsWon: 3,
-      matches: 76,
-      tournaments: 12,
-      kills: 1200,
-      stats: {
-        winRate: 15,
-        kdRatio: 2.1,
-        headshotPercentage: 25,
-        avgSurvivalTime: "10:34"
-      },
-      achievements: [
-        {
-          name: "Sharpshooter",
-          icon: "ri-aim-line",
-          colorClass: "from-amber-400 to-amber-600"
-        },
-        {
-          name: "Survivor",
-          icon: "ri-shield-star-line",
-          colorClass: "from-emerald-400 to-emerald-600"
-        }
-      ]
-    });
-    this.createUserActivity({
-      userId: user1.id,
-      text: "Won the Weekend Warriors Tournament",
-      icon: "ri-trophy-line",
-      iconColor: "text-primary"
-    });
-    this.createUserActivity({
-      userId: user1.id,
-      text: "Joined Phoenix Squad team",
-      icon: "ri-team-line",
-      iconColor: "text-secondary"
-    });
-    this.createUserActivity({
-      userId: user1.id,
-      text: "Reached Level 42",
-      icon: "ri-medal-line",
-      iconColor: "text-warning"
-    });
-  }
-  // User methods
   async getUser(id) {
     return this.users.get(id);
   }
@@ -309,599 +26,115 @@ var MemStorage = class {
       (user) => user.username === username
     );
   }
-  async createUser(user) {
-    const id = this.userCurrentId++;
-    const newUser = { ...user, id };
-    this.users.set(id, newUser);
-    return newUser;
+  async createUser(insertUser) {
+    const id = this.currentUserId++;
+    const user = { ...insertUser, id };
+    this.users.set(id, user);
+    return user;
   }
-  // Tournament methods
-  async createTournament(tournament) {
-    const id = this.tournamentCurrentId++;
-    const newTournament = {
-      ...tournament,
-      id,
-      participantsCount: 0
-      // Start with 0 participants
-    };
-    this.tournaments.set(id, newTournament);
-    return newTournament;
+  async getProjects() {
+    return Array.from(this.projects.values());
   }
-  async getTournament(id) {
-    const tournament = this.tournaments.get(id);
-    if (tournament) {
-      const registrations = Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === id);
-      return {
-        ...tournament,
-        participantsCount: registrations.length
-      };
+  async getProjectById(id) {
+    return this.projects.get(id);
+  }
+  async getProjectsByUsername(username) {
+    return this.projectsByUsername.get(username);
+  }
+  async createProject(project) {
+    const id = this.currentProjectId++;
+    const newProject = { ...project, id };
+    this.projects.set(id, newProject);
+    if (project.html_url && project.html_url.includes("github.com")) {
+      const username = project.html_url.split("github.com/")[1]?.split("/")[0];
+      if (username) {
+        const existingProjects = this.projectsByUsername.get(username) || [];
+        this.projectsByUsername.set(username, [...existingProjects, newProject]);
+      }
     }
-    return void 0;
-  }
-  async getAllTournaments() {
-    const tournaments2 = Array.from(this.tournaments.values());
-    return tournaments2.map((tournament) => {
-      const registrations = Array.from(this.tournamentRegistrations.values()).filter((reg) => reg.tournamentId === tournament.id);
-      return {
-        ...tournament,
-        participantsCount: registrations.length
-      };
-    });
-  }
-  // Team methods
-  async createTeam(team) {
-    const id = this.teamCurrentId++;
-    const newTeam = { ...team, id };
-    this.teams.set(id, newTeam);
-    return newTeam;
-  }
-  async getTeam(id) {
-    return this.teams.get(id);
-  }
-  async getAllTeams() {
-    return Array.from(this.teams.values());
-  }
-  // Team Member methods
-  async addTeamMember(teamMember) {
-    const id = this.teamMemberCurrentId++;
-    const joinedAt = (/* @__PURE__ */ new Date()).toISOString();
-    const newTeamMember = { ...teamMember, id, joinedAt };
-    this.teamMembers.set(id, newTeamMember);
-    return newTeamMember;
-  }
-  async getTeamMembers(teamId) {
-    return Array.from(this.teamMembers.values()).filter((member) => member.teamId === teamId);
-  }
-  // Tournament Registration methods
-  async registerForTournament(registration) {
-    const id = this.tournamentRegistrationCurrentId++;
-    const registeredAt = (/* @__PURE__ */ new Date()).toISOString();
-    const newRegistration = { ...registration, id, registeredAt };
-    this.tournamentRegistrations.set(id, newRegistration);
-    const tournament = await this.getTournament(registration.tournamentId);
-    if (tournament) {
-      this.tournaments.set(tournament.id, {
-        ...tournament,
-        participantsCount: tournament.participantsCount + 1
-      });
-    }
-    return newRegistration;
-  }
-  async getTournamentRegistrations(tournamentId) {
-    return Array.from(this.tournamentRegistrations.values()).filter((registration) => registration.tournamentId === tournamentId);
-  }
-  // Match methods
-  async createMatch(match) {
-    const id = this.matchCurrentId++;
-    const tournament = await this.getTournament(match.tournamentId);
-    const tournamentName = tournament ? tournament.name : "Unknown Tournament";
-    const newMatch = {
-      ...match,
-      id,
-      tournamentName,
-      pointsEarned: 0,
-      position: 0,
-      date: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    this.matches.set(id, newMatch);
-    return newMatch;
-  }
-  async getTournamentMatches(tournamentId) {
-    return Array.from(this.matches.values()).filter((match) => match.tournamentId === tournamentId);
-  }
-  // Match Participant methods
-  async addMatchParticipant(participant) {
-    const id = this.matchParticipantCurrentId++;
-    const newParticipant = { ...participant, id };
-    this.matchParticipants.set(id, newParticipant);
-    return newParticipant;
-  }
-  async getMatchParticipants(matchId) {
-    return Array.from(this.matchParticipants.values()).filter((participant) => participant.matchId === matchId);
-  }
-  // User Profile methods
-  async createUserProfile(profile) {
-    const id = this.userProfileCurrentId++;
-    const updatedAt = (/* @__PURE__ */ new Date()).toISOString();
-    const newProfile = { ...profile, id, updatedAt };
-    this.userProfiles.set(id, newProfile);
-    return newProfile;
-  }
-  async getUserProfile(userId) {
-    return Array.from(this.userProfiles.values()).find((profile) => profile.userId === userId);
-  }
-  // User Activity methods
-  async createUserActivity(activity) {
-    const id = this.userActivityCurrentId++;
-    const timestamp2 = (/* @__PURE__ */ new Date()).toISOString();
-    const newActivity = { ...activity, id, timestamp: timestamp2 };
-    this.userActivities.set(id, newActivity);
-    return newActivity;
-  }
-  async getUserActivities(userId) {
-    return Array.from(this.userActivities.values()).filter((activity) => activity.userId === userId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return newProject;
   }
 };
 var storage = new MemStorage();
 
 // server/routes.ts
-import { ZodError } from "zod";
-import { fromZodError } from "zod-validation-error";
-
-// shared/schema.ts
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-var users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  displayName: text("display_name"),
-  photoURL: text("photo_url"),
-  phoneNumber: text("phone_number"),
-  isAdmin: boolean("is_admin").default(false),
-  createdAt: timestamp("created_at").defaultNow()
-});
-var insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  email: true,
-  displayName: true,
-  photoURL: true,
-  phoneNumber: true,
-  isAdmin: true
-});
-var tournaments = pgTable("tournaments", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  format: text("format").notNull(),
-  teamSize: integer("team_size").notNull(),
-  maxParticipants: integer("max_participants").notNull(),
-  entryFee: integer("entry_fee").default(0),
-  prizePool: integer("prize_pool").notNull(),
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date").notNull(),
-  registrationStartDate: timestamp("registration_start_date").notNull(),
-  registrationEndDate: timestamp("registration_end_date").notNull(),
-  registrationOpen: boolean("registration_open").default(true),
-  rules: text("rules").array(),
-  createdBy: integer("created_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow()
-});
-var insertTournamentSchema = createInsertSchema(tournaments).pick({
-  name: true,
-  description: true,
-  format: true,
-  teamSize: true,
-  maxParticipants: true,
-  entryFee: true,
-  prizePool: true,
-  startDate: true,
-  endDate: true,
-  registrationStartDate: true,
-  registrationEndDate: true,
-  registrationOpen: true,
-  rules: true,
-  createdBy: true
-});
-var teams = pgTable("teams", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  captain: integer("captain").references(() => users.id),
-  logo: text("logo"),
-  tournamentsPlayed: integer("tournaments_played").default(0),
-  badges: text("badges").array(),
-  createdAt: timestamp("created_at").defaultNow()
-});
-var insertTeamSchema = createInsertSchema(teams).pick({
-  name: true,
-  captain: true,
-  logo: true,
-  tournamentsPlayed: true,
-  badges: true
-});
-var teamMembers = pgTable("team_members", {
-  id: serial("id").primaryKey(),
-  teamId: integer("team_id").references(() => teams.id).notNull(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  joinedAt: timestamp("joined_at").defaultNow()
-});
-var insertTeamMemberSchema = createInsertSchema(teamMembers).pick({
-  teamId: true,
-  userId: true
-});
-var tournamentRegistrations = pgTable("tournament_registrations", {
-  id: serial("id").primaryKey(),
-  tournamentId: integer("tournament_id").references(() => tournaments.id).notNull(),
-  teamId: integer("team_id").references(() => teams.id).notNull(),
-  registeredAt: timestamp("registered_at").defaultNow(),
-  paymentStatus: text("payment_status").default("pending"),
-  paymentId: text("payment_id")
-});
-var insertTournamentRegistrationSchema = createInsertSchema(tournamentRegistrations).pick({
-  tournamentId: true,
-  teamId: true,
-  paymentStatus: true,
-  paymentId: true
-});
-var matches = pgTable("matches", {
-  id: serial("id").primaryKey(),
-  tournamentId: integer("tournament_id").references(() => tournaments.id).notNull(),
-  round: integer("round").notNull(),
-  matchNumber: integer("match_number").notNull(),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time"),
-  status: text("status").default("scheduled"),
-  results: jsonb("results")
-});
-var insertMatchSchema = createInsertSchema(matches).pick({
-  tournamentId: true,
-  round: true,
-  matchNumber: true,
-  startTime: true,
-  endTime: true,
-  status: true,
-  results: true
-});
-var matchParticipants = pgTable("match_participants", {
-  id: serial("id").primaryKey(),
-  matchId: integer("match_id").references(() => matches.id).notNull(),
-  teamId: integer("team_id").references(() => teams.id).notNull(),
-  position: integer("position"),
-  points: integer("points").default(0),
-  kills: integer("kills").default(0)
-});
-var insertMatchParticipantSchema = createInsertSchema(matchParticipants).pick({
-  matchId: true,
-  teamId: true,
-  position: true,
-  points: true,
-  kills: true
-});
-var userProfiles = pgTable("user_profiles", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  level: integer("level").default(1),
-  rank: text("rank").default("Rookie"),
-  verified: boolean("verified").default(false),
-  tournamentsWon: integer("tournaments_won").default(0),
-  matches: integer("matches").default(0),
-  tournaments: integer("tournaments").default(0),
-  kills: integer("kills").default(0),
-  stats: jsonb("stats"),
-  achievements: jsonb("achievements"),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
-var insertUserProfileSchema = createInsertSchema(userProfiles).pick({
-  userId: true,
-  level: true,
-  rank: true,
-  verified: true,
-  tournamentsWon: true,
-  matches: true,
-  tournaments: true,
-  kills: true,
-  stats: true,
-  achievements: true
-});
-var userActivities = pgTable("user_activities", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  text: text("text").notNull(),
-  icon: text("icon"),
-  iconColor: text("icon_color"),
-  timestamp: timestamp("timestamp").defaultNow()
-});
-var insertUserActivitySchema = createInsertSchema(userActivities).pick({
-  userId: true,
-  text: true,
-  icon: true,
-  iconColor: true
-});
-
-// server/routes.ts
-import * as admin from "firebase-admin";
-import { cert } from "firebase-admin/app";
+import fetch from "node-fetch";
 async function registerRoutes(app2) {
-  try {
-    if (admin.apps.length === 0) {
-      const projectId = process.env.FIREBASE_PROJECT_ID;
-      const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-      if (projectId && clientEmail && privateKey) {
-        const credential = cert({
-          // Using the imported cert function
-          projectId,
-          clientEmail,
-          privateKey
-        });
-        admin.initializeApp({
-          // <<<<<<<<<<<< CORRECTED: Use admin.initializeApp
-          credential,
-          databaseURL: `https://${projectId}-default-rtdb.asia-southeast1.firebasedatabase.app`
-        });
-        console.log("Firebase Admin SDK initialized successfully");
-      } else {
-        console.warn("Firebase Admin credentials (PROJECT_ID, CLIENT_EMAIL, PRIVATE_KEY) not found in environment variables. Firebase features might not work.");
+  app2.get("/api/github/projects", async (req, res) => {
+    try {
+      const { username } = req.query;
+      if (!username || typeof username !== "string") {
+        return res.status(400).json({ message: "Username is required" });
       }
-    } else {
-      console.log("Firebase Admin SDK already initialized.");
-    }
-  } catch (error) {
-    console.error("Error initializing Firebase Admin SDK:", error);
-  }
-  const validateRequest = (schema) => {
-    return (req, res, next) => {
-      try {
-        req.validatedBody = schema.parse(req.body);
-        next();
-      } catch (error) {
-        if (error instanceof ZodError) {
-          const validationError = fromZodError(error);
-          res.status(400).json({ message: "Validation Error", details: validationError.message });
-        } else {
-          console.error("Unexpected validation error:", error);
-          res.status(500).json({ message: "Internal server error during validation" });
-        }
+      const cachedProjects = await storage.getProjectsByUsername(username);
+      if (cachedProjects && cachedProjects.length > 0) {
+        return res.json(cachedProjects);
       }
-    };
-  };
-  const authenticateUser = async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Unauthorized: Missing or invalid token format" });
-    }
-    const token = authHeader.split("Bearer ")[1];
-    try {
-      if (admin.apps.length === 0) {
-        console.error("Firebase Admin SDK not initialized. Cannot verify token.");
-        return res.status(503).json({ message: "Service Unavailable: Authentication service not ready." });
+      const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=10`);
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.statusText}`);
       }
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      req.user = decodedToken;
-      next();
+      const repos = await response.json();
+      const projects = repos.map((repo, index) => ({
+        id: repo.id,
+        name: repo.name,
+        description: repo.description || "No description available",
+        html_url: repo.html_url,
+        homepage: repo.homepage || "",
+        topics: repo.topics || [],
+        // Categorize based on topics or language
+        category: categorizeRepo(repo),
+        language: repo.language,
+        // Use placeholder images
+        image: getPlaceholderImage(index),
+        created_at: repo.created_at,
+        updated_at: repo.updated_at
+      }));
+      await Promise.all(projects.map((project) => storage.createProject(project)));
+      res.json(projects);
     } catch (error) {
-      console.error("Authentication error:", error.message);
-      if (error.code === "auth/id-token-expired") {
-        res.status(401).json({ message: "Unauthorized: Token expired" });
-      } else {
-        res.status(401).json({ message: "Unauthorized: Invalid token" });
-      }
-    }
-  };
-  app2.post("/api/users", validateRequest(insertUserSchema), async (req, res) => {
-    try {
-      const user = await storage.createUser(req.validatedBody);
-      res.status(201).json(user);
-    } catch (error) {
-      console.error("Error creating user:", error);
-      res.status(500).json({ message: "Error creating user", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/users/:id", async (req, res) => {
-    try {
-      const userId = parseInt(req.params.id);
-      if (isNaN(userId)) return res.status(400).json({ message: "Invalid user ID format" });
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Error fetching user", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.post("/api/tournaments", authenticateUser, validateRequest(insertTournamentSchema), async (req, res) => {
-    try {
-      const tournament = await storage.createTournament(req.validatedBody);
-      res.status(201).json(tournament);
-    } catch (error) {
-      console.error("Error creating tournament:", error);
-      res.status(500).json({ message: "Error creating tournament", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/tournaments", async (req, res) => {
-    try {
-      const tournaments2 = await storage.getAllTournaments();
-      res.json(tournaments2);
-    } catch (error) {
-      console.error("Error fetching tournaments:", error);
-      res.status(500).json({ message: "Error fetching tournaments", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/tournaments/:id", async (req, res) => {
-    try {
-      const tournamentId = parseInt(req.params.id);
-      if (isNaN(tournamentId)) return res.status(400).json({ message: "Invalid tournament ID format" });
-      const tournament = await storage.getTournament(tournamentId);
-      if (!tournament) {
-        return res.status(404).json({ message: "Tournament not found" });
-      }
-      res.json(tournament);
-    } catch (error) {
-      console.error("Error fetching tournament:", error);
-      res.status(500).json({ message: "Error fetching tournament", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.post("/api/teams", authenticateUser, validateRequest(insertTeamSchema), async (req, res) => {
-    try {
-      const team = await storage.createTeam(req.validatedBody);
-      res.status(201).json(team);
-    } catch (error) {
-      console.error("Error creating team:", error);
-      res.status(500).json({ message: "Error creating team", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/teams", async (req, res) => {
-    try {
-      const teams2 = await storage.getAllTeams();
-      res.json(teams2);
-    } catch (error) {
-      console.error("Error fetching teams:", error);
-      res.status(500).json({ message: "Error fetching teams", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/teams/:id", async (req, res) => {
-    try {
-      const teamId = parseInt(req.params.id);
-      if (isNaN(teamId)) return res.status(400).json({ message: "Invalid team ID format" });
-      const team = await storage.getTeam(teamId);
-      if (!team) {
-        return res.status(404).json({ message: "Team not found" });
-      }
-      res.json(team);
-    } catch (error) {
-      console.error("Error fetching team:", error);
-      res.status(500).json({ message: "Error fetching team", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.post("/api/team-members", authenticateUser, validateRequest(insertTeamMemberSchema), async (req, res) => {
-    try {
-      const teamMember = await storage.addTeamMember(req.validatedBody);
-      res.status(201).json(teamMember);
-    } catch (error) {
-      console.error("Error adding team member:", error);
-      res.status(500).json({ message: "Error adding team member", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/teams/:teamId/members", async (req, res) => {
-    try {
-      const teamId = parseInt(req.params.teamId);
-      if (isNaN(teamId)) return res.status(400).json({ message: "Invalid team ID format" });
-      const members = await storage.getTeamMembers(teamId);
-      res.json(members);
-    } catch (error) {
-      console.error("Error fetching team members:", error);
-      res.status(500).json({ message: "Error fetching team members", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.post("/api/tournament-registrations", authenticateUser, validateRequest(insertTournamentRegistrationSchema), async (req, res) => {
-    try {
-      const registration = await storage.registerForTournament(req.validatedBody);
-      res.status(201).json(registration);
-    } catch (error) {
-      console.error("Error registering for tournament:", error);
-      res.status(500).json({ message: "Error registering for tournament", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/tournaments/:tournamentId/registrations", async (req, res) => {
-    try {
-      const tournamentId = parseInt(req.params.tournamentId);
-      if (isNaN(tournamentId)) return res.status(400).json({ message: "Invalid tournament ID format" });
-      const registrations = await storage.getTournamentRegistrations(tournamentId);
-      res.json(registrations);
-    } catch (error) {
-      console.error("Error fetching tournament registrations:", error);
-      res.status(500).json({ message: "Error fetching tournament registrations", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.post("/api/matches", authenticateUser, validateRequest(insertMatchSchema), async (req, res) => {
-    try {
-      const match = await storage.createMatch(req.validatedBody);
-      res.status(201).json(match);
-    } catch (error) {
-      console.error("Error creating match:", error);
-      res.status(500).json({ message: "Error creating match", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/tournaments/:tournamentId/matches", async (req, res) => {
-    try {
-      const tournamentId = parseInt(req.params.tournamentId);
-      if (isNaN(tournamentId)) return res.status(400).json({ message: "Invalid tournament ID format" });
-      const matches2 = await storage.getTournamentMatches(tournamentId);
-      res.json(matches2);
-    } catch (error) {
-      console.error("Error fetching tournament matches:", error);
-      res.status(500).json({ message: "Error fetching tournament matches", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.post("/api/match-participants", authenticateUser, validateRequest(insertMatchParticipantSchema), async (req, res) => {
-    try {
-      const participant = await storage.addMatchParticipant(req.validatedBody);
-      res.status(201).json(participant);
-    } catch (error) {
-      console.error("Error adding match participant:", error);
-      res.status(500).json({ message: "Error adding match participant", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/matches/:matchId/participants", async (req, res) => {
-    try {
-      const matchId = parseInt(req.params.matchId);
-      if (isNaN(matchId)) return res.status(400).json({ message: "Invalid match ID format" });
-      const participants = await storage.getMatchParticipants(matchId);
-      res.json(participants);
-    } catch (error) {
-      console.error("Error fetching match participants:", error);
-      res.status(500).json({ message: "Error fetching match participants", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.post("/api/user-profiles", authenticateUser, validateRequest(insertUserProfileSchema), async (req, res) => {
-    try {
-      const profile = await storage.createUserProfile(req.validatedBody);
-      res.status(201).json(profile);
-    } catch (error) {
-      console.error("Error creating user profile:", error);
-      res.status(500).json({ message: "Error creating user profile", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/users/:userId/profile", async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      if (isNaN(userId)) return res.status(400).json({ message: "Invalid user ID format" });
-      const profile = await storage.getUserProfile(userId);
-      if (!profile) {
-        return res.status(404).json({ message: "User profile not found" });
-      }
-      res.json(profile);
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      res.status(500).json({ message: "Error fetching user profile", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.post("/api/user-activities", authenticateUser, validateRequest(insertUserActivitySchema), async (req, res) => {
-    try {
-      const activity = await storage.createUserActivity(req.validatedBody);
-      res.status(201).json(activity);
-    } catch (error) {
-      console.error("Error creating user activity:", error);
-      res.status(500).json({ message: "Error creating user activity", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-  app2.get("/api/users/:userId/activities", async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      if (isNaN(userId)) return res.status(400).json({ message: "Invalid user ID format" });
-      const activities = await storage.getUserActivities(userId);
-      res.json(activities);
-    } catch (error) {
-      console.error("Error fetching user activities:", error);
-      res.status(500).json({ message: "Error fetching user activities", error: error instanceof Error ? error.message : String(error) });
+      console.error("Error fetching GitHub projects:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch projects" });
     }
   });
   const httpServer = createServer(app2);
   return httpServer;
+}
+function categorizeRepo(repo) {
+  const topics = repo.topics || [];
+  const language = repo.language || "";
+  if (topics.some(
+    (t) => ["react-native", "android", "ios", "flutter", "mobile"].includes(t.toLowerCase())
+  )) {
+    return "mobile";
+  }
+  if (topics.some(
+    (t) => ["web", "react", "vue", "angular", "nextjs", "gatsby", "frontend"].includes(t.toLowerCase())
+  ) || ["JavaScript", "TypeScript", "HTML", "CSS"].includes(language)) {
+    return "web";
+  }
+  if (topics.some(
+    (t) => ["ai", "machine-learning", "ml", "data-science", "tensorflow", "pytorch"].includes(t.toLowerCase())
+  ) || ["Python", "R", "Julia"].includes(language)) {
+    return "ai";
+  }
+  if (topics.some(
+    (t) => ["devops", "aws", "azure", "cloud", "kubernetes", "docker"].includes(t.toLowerCase())
+  )) {
+    return "devops";
+  }
+  return "other";
+}
+function getPlaceholderImage(index) {
+  const images = [
+    "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=400",
+    "https://images.unsplash.com/photo-1526498460520-4c246339dccb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=400",
+    "https://images.unsplash.com/photo-1557821552-17105176677c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=400",
+    "https://images.unsplash.com/photo-1555952517-2e8e729e0b44?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=400",
+    "https://images.unsplash.com/photo-1552068751-34cb5cf055b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=400",
+    "https://images.unsplash.com/photo-1550063873-ab792950096b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=400"
+  ];
+  return images[index % images.length];
 }
 
 // server/vite.ts
@@ -914,18 +147,9 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 var vite_config_default = defineConfig({
-  base: "/h1p4zdev.github.io/",
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    ...process.env.NODE_ENV !== "production" && process.env.REPL_ID !== void 0 ? [
-      await import("@replit/vite-plugin-cartographer").then(
-        (m) => m.cartographer()
-      )
-    ] : []
-  ],
+  plugins: [react()],
+  base: "/your-repo-name/",
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -935,7 +159,7 @@ var vite_config_default = defineConfig({
   },
   root: path.resolve(import.meta.dirname, "client"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true
   }
 });
@@ -1011,27 +235,6 @@ function serveStatic(app2) {
 var app = express2();
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: false }));
-var allowedOrigins = [
-  "https://h1p4zdev-github-io.vercel.app"
-  // <<<<<<<<<<<< REPLACED HERE
-  // 'http://localhost:5173' // Example: Add your Vite dev server URL if needed for local testing
-];
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = "The CORS policy for this site does not allow access from the specified Origin.";
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  // Standard methods
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  // Common headers
-  credentials: true
-  // This is important if your frontend needs to send cookies or Authorization headers
-}));
 app.use((req, res, next) => {
   const start = Date.now();
   const path3 = req.path;
@@ -1061,13 +264,8 @@ app.use((req, res, next) => {
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-    if (!res.headersSent) {
-      if (allowedOrigins.includes(_req.headers.origin || "")) {
-        res.setHeader("Access-Control-Allow-Origin", _req.headers.origin || "");
-        res.setHeader("Access-Control-Allow-Credentials", "true");
-      }
-    }
     res.status(status).json({ message });
+    throw err;
   });
   if (app.get("env") === "development") {
     await setupVite(app, server);
@@ -1082,7 +280,4 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   });
-})().catch((err) => {
-  console.error("Failed to start server:", err);
-  process.exit(1);
-});
+})();
